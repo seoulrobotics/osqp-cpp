@@ -514,11 +514,13 @@ OsqpExitCode StatusToExitCode(const c_int status_val) {
 OsqpExitCode OsqpSolver::Solve() {
   OSQP_CHECK(IsInitialized());
   if (osqp_solve(workspace_.get()) != 0) {
+#ifdef CTRLC
     // From looking at the code, this can happen if the solve is interrupted
     // with ctrl-c or if updating "rho" fails.
     if (osqp_is_interrupted()) {
       return OsqpExitCode::kInterrupted;
     }
+#endif /* ifdef CTRLC */
     return OsqpExitCode::kUnknown;
   }
   return StatusToExitCode(workspace_->info->status_val);
